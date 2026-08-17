@@ -1,32 +1,32 @@
 # Smart_Student_Performance_Prediction_System
 
 #### 1. Problem Statement:
-- Student performance is influenced by multiple acadamic and behavioral factors.
-- Faculty may find it difficult to identify students who are at riskat an early stage.
-- A data-driven system can help predict student performace.
+- Student performance is influenced by multiple academic and behavioral factors.
+- Faculty may find it difficult to identify students who are at risk at an early stage.
+- A data-driven system can help predict student performance.
 - The system can provide recommendations for improving students outcomes.
 
 #### 2. Proposed Solution:
 - Collect Student-related information.
 - Process the entered date.
-- Use a Machine Learningg model to predict performance.
+- Use a Machine Learning model to predict performance.
 - Classify students based on predicted performance.
 - Generate intelligent recommendations.
 - Display the results through a user-friendly Tkinter interface.
 
 #### 3. Process Flow:
-<p align="center"> Start <br> &darr; <br> Enter Student Details <br> &darr; <br> Validate Input <br> &darr; <br> Preprocess Data <br> &darr; <br> ML Prediction <br> &darr; <br> Determine Performance Level  <br> &darr; <br> Generate AI Recommendation <br> &darr; <br> Displayy Result <br> &darr; <br> End</p>
+<p align="center"> Start <br> &darr; <br> Enter Student Details <br> &darr; <br> Validate Input <br> &darr; <br> Preprocess Data <br> &darr; <br> ML Prediction <br> &darr; <br> Determine Performance Level  <br> &darr; <br> Generate AI Recommendation <br> &darr; <br> Display Result <br> &darr; <br> End</p>
 
 #### 4. Project Mapping:
 | V-Model Stage           | Smart Student Project                       |
-|:-----------------------:|:-------------------------------------------:|
+|:------------------------|:--------------------------------------------|
 | Requirement Analysis    | Identify student performance problem        |
 | System Design           | Design system architecture and UI           |
 | Implementation          | Develop Python + ML application             |
-| Integratiion            | Integrate UI, ML and AI                     | 
+| Integration             | Integrate UI, ML and AI                     | 
 | Testing                 | Test individual modules and complete system |
 | Validation              | Check system against requirements           |
-|Demonstration            | Present working capstone                    |
+| Demonstration           | Present working capstone                    |
 
 ### 5. Requirement Analysis
 #### 5.1 Functional Requirements
@@ -56,7 +56,7 @@ The applications should be:
 #### 5.3 Identify the Users
 Primary Users may include:
   + Faculty
-  + Acadamic coordinators
+  + Academic coordinators
   + Mentors
   + Students
 
@@ -72,11 +72,11 @@ The user should be able to:
 The initial system can use:
 + Student ID
 + Student Name
-+ Attendence Percentage
++ Attendance Percentage
 + Study Hours per Day
-+ Internal Assesment Marks
++ Internal Assessment Marks
 + Assignment completion Percentage
-+ Previoys Acadamic Performance
++ Previous Academic Performance
 
 #### 5.6 Identify System Outputs
 ###### 5.6.1 Performance Prediction
@@ -88,24 +88,19 @@ The initial system can use:
 ###### 5.6.2 Additional Outputs
   + Predictions score/probability
   + Risk level
-  + Key factors affeecting performance
+  + Key factors affecting performance
   + Recommended actions
 
 ###### Example
-__Prediction:__ Good  Performance
-__Risk:__ Low
-__Recommendation:__ Maintain Current Pattern and attendance
+__Prediction:__ Good  Performance \
+__Risk:__ Low \
+__Recommendation:__ Maintain Current Pattern and attendance 
 
 #### 6. Project Modular Application Development
-Create seperate functions:
+Create separate functions:
 ```
 get_student_data()
 calculate_average()
 calculate_performance()
 display_result()
 ```
-
-##### Sample Output
-Student Name: Arun \
-Performance Level: GOOD \
-Recommendation: Maintain attendence and continue regular study.
