@@ -104,3 +104,71 @@ calculate_average()
 calculate_performance()
 display_result()
 ```
+#### 7. From Requirements to System Design
+##### __7.1 Input__
++ Student ID
++ Student Name
++ Attendance %
++ Study Hours
++ Internal Marks
++ Assignment Completion %
++ Previous Academic Performance
+
+##### __7.2 Processing__
++ Validate input
++ Preprocess data
++ Send data to ML Model
++ Generate prediction
++ Generate recommendation
+
+##### __7.3 Output__
++ Predicted performance
++ Performance category
++ Risk level
++ Recommendation
+
+#### 8. Proposed System Architecture
+```mermaid
+flowchart LR
+    A(( Tkinter UI student data entry )) --> B(( Input Validation - Check valid user inputs  ));
+    B --> C(( Data Processing - Prepare data for ML Model  ));
+    C --> D(( ML Prediction Engine - Predict performance ));
+    D --> E(( Result + AI Recommendation ));
+```
+#### 9. UI Design Requirements
+The application must contain: 
+> __1. Student Information Section__
+   + Student ID
+   + Student Name
+  
+> **2. Academic Information Section**
+  + Attendance
+  + Study Hours
+  + Internal Marks
+  + Assignment Completion
+  + Previous Performance
+
+> **3. Action Section**
+  + Predict Performance
+  + Clear
+  + Exit
+
+> **4. Result Section**
+  + Predicted Performance
+  + Risk Level
+  + Recommendation
+
+##### Using Frames
+```mermaid
+flowchart LR
+    A["`**Main Window**`"
+ Header
+ Student information frame
+ Academic information frame
+ Action frame
+ Result frame
+]
+```
+
+##### Workflow
+<p align="center"><br> User Clicks Predict <br> &darr; <br> Button generates event <br> &darr; <br> Callback function executes <br> &darr; <br> Python processing starts <br></p>
