@@ -1,38 +1,66 @@
 def get_student_data():
     name = input("Enter student name: ")
-    marks = []
+    attendance = float(input("Enter attendance: "))
+    study_hours = float(input("Enter study hours: "))
+    internal_marks = float(input("Enter internal marks: "))
+    assignment = float(input("Enter assignment completion: "))
 
-    for i in range(5):
-        mark = float(input(f"Enter marks for subject {i + 1}: "))
-        marks.append(mark)
-
-    return name, marks
-
-
-def calculate_average(marks):
-    return sum(marks) / len(marks)
+    return name, attendance, study_hours, internal_marks, assignment
 
 
-def calculate_performance(average):
-    if average >= 90:
-        return "Excellent"
-    elif average >= 75:
-        return "Good"
-    elif average >= 60:
-        return "Average"
-    elif average >= 50:
-        return "At Risk"
+def calculate_performance(attendance, study_hours, internal_marks, assignment):
+    study_score = study_hours * 20
+
+    performance = attendance * 0.20 + study_score * 0.20 + internal_marks * 0.40 + assignment * 0.20
+
+    return performance
+
+
+def calculate_level(score):
+    if score >= 85:
+        return "EXCELLENT"
+    elif score >= 70:
+        return "GOOD"
+    elif score >= 50:
+        return "AVERAGE"
     else:
-        return "Fail"
+        return "AT RISK"
 
 
-def display_result(name, average, performance):
-    print("\n--- Student Result ---")
-    print("Name:", name)
-    print("Average:", round(average, 2))
-    print("Performance:", performance)
+def recommendation(level):
+    if level == "EXCELLENT":
+        return "Keep up the good work."
 
-name, marks = get_student_data()
-average = calculate_average(marks)
-performance = calculate_performance(average)
-display_result(name, average, performance)
+    elif level == "GOOD":
+        return "Maintain attendance and continue regular study."
+
+    elif level == "AVERAGE":
+        return "Try to increase study hours and improve marks."
+
+    else:
+        return "Improve attendance and study regularly."
+
+
+def display_result(name, score, level, advice):
+    print("\nStudent Name:", name)
+    print("Performance Score:", round(score, 2))
+    print("Performance Level:", level)
+    print("Recommendation:", advice)
+
+
+if __name__ == "__main__":
+
+    name, attendance, study_hours, internal_marks, assignment = get_student_data()
+
+    score = calculate_performance(
+        attendance,
+        study_hours,
+        internal_marks,
+        assignment
+    )
+
+    level = calculate_level(score)
+
+    advice = recommendation(level)
+
+    display_result(name, score, level, advice)
