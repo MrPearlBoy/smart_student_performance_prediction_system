@@ -1,0 +1,11 @@
+StudentID,Name,Attendance,StudyHours,InternalMarks,Assignment,PreviousPerformance,Predicted_Result,Risk_Level
+123,asdf,34.0,3.2,23.0,56.0,47.0,AT RISK,Low Risk
+134,rty,65.0,3.0,76.0,34.0,98.0,AVERAGE,Low Risk
+123,Arun,78.0,4.0,67.0,87.0,55.0,GOOD
+12,Arjun,34.0,1.2,76.0,34.0,24.0
+13,Aadhi,45.0,1.7,55.0,90.0,87.0
+123,asdf,34.0,3.2,23.0,56.0,47.0,AT RISK
+134,rty,65.0,3.0,76.0,34.0,98.0,AVERAGE
+123,Arun,78.0,4.0,67.0,87.0,55.0,GOOD
+12,Arjun,34.0,1.2,76.0,34.0,24.0,AT RISK
+13,Aadhi,45.0,1.7,55.0,90.0,87.0,AVERAGE
