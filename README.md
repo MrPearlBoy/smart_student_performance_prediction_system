@@ -172,7 +172,17 @@ Main Window
 ##### 11. Workflow
 <p align="center"><br> User Clicks Predict <br> &darr; <br> Button generates event <br> &darr; <br> Callback function executes <br> &darr; <br> Python processing starts <br></p>
 
-##### 12. ML Workflow
+#### 12. Traditional Programming vs ML Programming
+
+| Traditional Programming       | ML Programming                     |
+|:------------------------------|:-----------------------------------|
+| Rules are written Manually    | model learns rules form data       |
+| Output = Logic + Input        | Output = Model + Input             |
+| Fixed Logic                   | Adaptive learning                  |
+
+
+
+##### 13. ML Workflow
 <p align="center"><br> Data Collection <br> &darr; <br> Data Processing <br> &darr; <br> Feature Selection <br> &darr; <br> Model Training <br> &darr; <br> Model Evaluation <br> &darr; <br> Prediction <br></p>
 
 **Dataset Creation**
@@ -201,7 +211,7 @@ __Prediction__
 __Save Model__
 + save the model using pickle
 
-#### 13. Problem Type
+#### 14. Problem Type
 **For this Project:**
 + **Classification Problem** \
 Output categories:
@@ -213,7 +223,7 @@ Output categories:
 + **Regressioin Problem**  \
 Output = Performance Score (0-100)
 
-#### 14. Model selection 
+#### 15. Model selection 
 **Algorithms Used for model training**
 + Logistic Regression 
 + Decision Tree
@@ -221,7 +231,7 @@ Output = Performance Score (0-100)
 **Model Evaluation**
   + Confusion Matrix
  
-#### 15. Improving the model
+#### 16. Improving the model
 + Increase dataset size
 + Feature selection
 + Try different algorithms
