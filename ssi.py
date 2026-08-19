@@ -51,16 +51,7 @@ def display_result(name, score, level, advice):
 if __name__ == "__main__":
 
     name, attendance, study_hours, internal_marks, assignment = get_student_data()
-
-    score = calculate_performance(
-        attendance,
-        study_hours,
-        internal_marks,
-        assignment
-    )
-
+    score = calculate_performance( attendance, study_hours, internal_marks, assignment )
     level = calculate_level(score)
-
     advice = recommendation(level)
-
     display_result(name, score, level, advice)
