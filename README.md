@@ -137,38 +137,92 @@ flowchart LR
 ```
 #### 9. UI Design Requirements
 The application must contain: 
-> __1. Student Information Section__
+> __9.1. Student Information Section__
    + Student ID
    + Student Name
   
-> **2. Academic Information Section**
+> **9.2. Academic Information Section**
   + Attendance
   + Study Hours
   + Internal Marks
   + Assignment Completion
   + Previous Performance
 
-> **3. Action Section**
+> **9.3. Action Section**
   + Predict Performance
   + Clear
   + Exit
 
-> **4. Result Section**
+> **9.4. Result Section**
   + Predicted Performance
   + Risk Level
   + Recommendation
 
-##### Using Frames
-```mermaid
-flowchart LR
-    A["`**Main Window**`"
- Header
- Student information frame
- Academic information frame
- Action frame
- Result frame
-]
+##### 10. Using Frames
+```
+Main Window
+├── Header
+├── Student Information Frame
+├── Academic Information Frame
+├── Action Frame
+└── Result Frame
+
 ```
 
-##### Workflow
+##### 11. Workflow
 <p align="center"><br> User Clicks Predict <br> &darr; <br> Button generates event <br> &darr; <br> Callback function executes <br> &darr; <br> Python processing starts <br></p>
+
+##### 12. ML Workflow
+<p align="center"><br> Data Collection <br> &darr; <br> Data Processing <br> &darr; <br> Feature Selection <br> &darr; <br> Model Training <br> &darr; <br> Model Evaluation <br> &darr; <br> Prediction <br></p>
+
+**Dataset Creation**
++ Create student dataset in csv
++ Add 20-50 records
+
+__Data Loading__
++ Load dataset using Pandas
++ Display dataset
+
+__Data cleaning__
++ Remove missing values
++ Check data types
+
+__Model Training__
++ Train Logustic Regression model
++ Split dataset
+
+__Model Evalution__
++ Calculate accuracy
++ Anayze accuracy
+
+__Prediction__
++ Test model with new input
+
+__Save Model__
++ save the model using pickle
+
+#### 13. Problem Type
+**For this Project:**
++ **Classification Problem** \
+Output categories:
+  + Excellent
+  + Good
+  + Average
+  + At Risk
+
++ **Regressioin Problem**  \
+Output = Performance Score (0-100)
+
+#### 14. Model selection 
+**Algorithms Used for model training**
++ Logistic Regression 
++ Decision Tree
++ Random Forest \
+**Model Evaluation**
+  + Confusion Matrix
+ 
+#### 15. Improving the model
++ Increase dataset size
++ Feature selection
++ Try different algorithms
++ Tune parameters
