@@ -83,14 +83,14 @@ def predict_performance():
         )
         return
 
-    if 0 < study_hours < 23 :
+    if 0 <= study_hours >= 23 :
         messagebox.showerror(
             "Invalid Study Hours",
             "Study hours cannot be negative."
         )
         return
 
-    score = calculate_performance (attendance, study_hours, internal_marks, assignment) 
+    score = calculate_performance (attendance, study_hours, internal_marks, assignment, previous_performance) 
     level = calculate_level (score)
     advice = recommendation (level)
     display_result (student_name, score, level, advice)

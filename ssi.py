@@ -1,17 +1,8 @@
-def get_student_data():
-    name = input("Enter student name: ")
-    attendance = float(input("Enter attendance: "))
-    study_hours = float(input("Enter study hours: "))
-    internal_marks = float(input("Enter internal marks: "))
-    assignment = float(input("Enter assignment completion: "))
+def calculate_performance(attendance, study_hours, internal_marks, assignment, previous_performance):
 
-    return name, attendance, study_hours, internal_marks, assignment
+    study_score = min((study_hours / 8) * 100, 100)
 
-
-def calculate_performance(attendance, study_hours, internal_marks, assignment):
-    study_score = study_hours * 20
-
-    performance = attendance * 0.20 + study_score * 0.20 + internal_marks * 0.40 + assignment * 0.20
+    performance = ( attendance * 0.20 + study_score * 0.15 + internal_marks * 0.25 + assignment * 0.15 + previous_performance * 0.25 )
 
     return performance
 
@@ -46,12 +37,3 @@ def display_result(name, score, level, advice):
     print("Performance Score:", round(score, 2))
     print("Performance Level:", level)
     print("Recommendation:", advice)
-
-
-if __name__ == "__main__":
-
-    name, attendance, study_hours, internal_marks, assignment = get_student_data()
-    score = calculate_performance( attendance, study_hours, internal_marks, assignment )
-    level = calculate_level(score)
-    advice = recommendation(level)
-    display_result(name, score, level, advice)
