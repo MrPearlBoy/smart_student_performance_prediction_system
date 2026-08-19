@@ -1,6 +1,6 @@
 import tkinter as tk
 from tkinter import messagebox
-from ssi import calculate_performance(attendance, study_hours, internal_marks, assignment), calculate_level(score), recommendation(level), display_result(name, score, level, advice)
+from ssi import calculate_performance, calculate_level, recommendation, display_result
 
 root = tk.Tk()
 
@@ -93,7 +93,7 @@ def predict_performance():
     score = calculate_performance (attendance, study_hours, internal_marks, assignment) 
     level = calculate_level (score)
     advice = recommendation (level)
-    display_result (name, score, level, advice)
+    display_result (student_name, score, level, advice)
 
 
 def clear_fields():
