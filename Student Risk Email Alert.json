@@ -1,0 +1,115 @@
+{
+  "name": "Student Risk Email Alert",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "student-risk-alert",
+        "options": {}
+      },
+      "id": "61b425f6-c6d7-4558-9fec-9387eb3983ac",
+      "name": "Receive Student Record",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        0,
+        0
+      ],
+      "webhookId": "8a29198a-8cd1-4d05-bd03-c92c385261da"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "combinator": "and",
+          "options": {
+            "caseSensitive": false,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "high-risk",
+              "leftValue": "={{ $json.body.Risk_Level }}",
+              "rightValue": "High Risk",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "f4a1b8ca-9ca3-4376-923f-4eb35ee4435d",
+      "name": "Is High Risk",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        224,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $json.body.Email }}",
+        "subject": "=High Risk Student Alert - {{ $json.body.Name }} (ID {{ $json.body.StudentID }})",
+        "message": "=Dear {{ $json.body.Name }},\n\n<p>This is an official advisory notification from the <b>Student Academic Performance & Support System</b>. Our continuous evaluation system has generated an interim assessment of your current academic standing to help you identify areas for improvement before final grading.</p>\n\n<p>Based on your latest coursework, attendance, and continuous assessment metrics, your current status is flagged as: <span style=\"font-size: 1.1em; color: #d9534f;\"><b>{{ $json.body.Risk_Level }} Risk</b></span>.</p>\n\n<hr>\n\n<h3><b>Academic Performance Summary</b></h3>\n\n<table border=\"1\" cellpadding=\"8\" cellspacing=\"0\" style=\"border-collapse: collapse; width: 100%; max-width: 550px; text-align: left; font-family: Arial, sans-serif;\">\n  <tr style=\"background-color: #f2f2f2;\">\n    <th>Metric</th>\n    <th>Your Record</th>\n  </tr>\n  <tr>\n    <td><b>Predicted Final Outcome</b></td>\n    <td><b>{{ $json.body.Predicted_Result }}</b></td>\n  </tr>\n  <tr>\n    <td>Class Attendance</td>\n    <td>{{ $json.body.Attendance }}%</td>\n  </tr>\n  <tr>\n    <td>Average Daily Study Hours</td>\n    <td>{{ $json.body.StudyHours }} hrs/day</td>\n  </tr>\n  <tr>\n    <td>Internal Assessment Marks</td>\n    <td>{{ $json.body.InternalMarks }}</td>\n  </tr>\n  <tr>\n    <td>Assignment Completion Rate</td>\n    <td>{{ $json.body.Assignment }}%</td>\n  </tr>\n  <tr>\n    <td>Prior Academic Term Standing</td>\n    <td>{{ $json.body.PreviousPerformance }}%</td>\n  </tr>\n</table>\n\n<hr>\n\n<h3><b>Personalized Academic Recommendations</b></h3>\n<p>{{ $json.body.Recommendation }}</p>\n\n<h3><b>Recommended Next Steps</b></h3>\n<ul>\n  <li><b>Schedule a Mentor Meeting:</b> Connect with your assigned faculty mentor within the next 3 business days to review your study plan.</li>\n  <li><b>Utilize Academic Resources:</b> Access peer tutoring sessions, faculty office hours, and supplemental learning materials via the student portal.</li>\n  <li><b>Attendance & Submission Recovery:</b> Address any pending submissions or attendance shortfalls immediately to maintain exam eligibility.</li>\n</ul>\n\n<p>This early alert is intended to give you sufficient time to recover your grades and succeed in your coursework. If you are experiencing personal, health, or scheduling difficulties affecting your studies, please notify the student support desk so we can assist you.</p>\n\n<p>Warm regards,<br>\n<b>Office of the Programme Coordinator</b><br>\nDepartment of Academic Affairs<br>\n<i>Note: This is an automated academic progress update. Please reply directly to your mentor or academic advisor.</i></p>",
+        "options": {}
+      },
+      "id": "95b3f22a-364c-4dae-ad63-03def33227df",
+      "name": "Send Risk Alert Email",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        448,
+        0
+      ],
+      "webhookId": "4a318d2a-017f-4625-9647-70d379de3f20",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "F6hUaESfQDIakPYQ",
+          "name": "Gmail account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Receive Student Record": {
+      "main": [
+        [
+          {
+            "node": "Is High Risk",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is High Risk": {
+      "main": [
+        [
+          {
+            "node": "Send Risk Alert Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "78b440c4-f1dc-4921-ab9a-6b0545ae6a14",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "25a5ecb4b82744b7f663e491dfdad4436834a8e3b788bc1a8e946243ef912127"
+  },
+  "nodeGroups": [],
+  "id": "EqXJQ59CWLIw0NiE",
+  "tags": []
+}
