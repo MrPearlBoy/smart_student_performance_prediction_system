@@ -11,7 +11,7 @@ def ai_feedback(risk_level, attendance, study_hours, internal_marks):
 
     # 2. Condition: Low Attendance
     if attendance < 80:
-        suggestions.append("Improve attendance above 75%.")
+        suggestions.append("Improve attendance above 80%.")
 
     # 3. Condition: Low Study Hours
     if study_hours < 2:
