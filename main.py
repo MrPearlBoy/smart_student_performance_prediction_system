@@ -11,7 +11,7 @@ MODEL_PATH = "student_regression_model.pkl"
 MASTER_CSV_FILE = "student_prediction.csv"
 FEATURE_COLS = ["Attendance", "StudyHours", "InternalMarks", "Assignment", "PreviousPerformance"]
 ALL_COLUMNS = ["StudentID", "Name", "Attendance", "StudyHours", "InternalMarks", "Assignment", "PreviousPerformance"]
-RECORD_COLUMNS = ALL_COLUMNS + ["Predicted_Result", "Risk_Level"]
+RECORD_COLUMNS = ALL_COLUMNS + ["Predicted_Result", "Risk_Level", "Recommendation"]
 
 try:
     model = joblib.load(MODEL_PATH)
@@ -200,16 +200,17 @@ def predict_performance():
 
         # Calculate Risk Level
         risk_level = calculate_risk(pred_score)
-        advice = ai_feedback(risk_level=risk_level, attendance=data["Attendance"], study_hours=data["StudyHours"],internal_marks=data["InternalMarks"])
 
         prediction_value.config(text=f"Prediction ({data['Name']}): {pred_text}")
         risk_value.config(text=f"Risk Level: {risk_level}")
+        advice = ai_feedback(risk_level=risk_level, attendance=data["Attendance"], study_hours=data["StudyHours"],internal_marks=data["InternalMarks"])
         recommendation_value.config(text=f"Recommendation: {advice}")
        
 
         record = dict(data)
         record["Predicted_Result"] = pred_score
         record["Risk_Level"] = risk_level
+        record["Recommendation"] = advice
         
         df_single = pd.DataFrame([record])
         append_to_master_csv(df_single)

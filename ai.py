@@ -10,7 +10,7 @@ def ai_feedback(risk_level, attendance, study_hours, internal_marks):
         suggestions.append("Good progress! Keep up the consistency.")
 
     # 2. Condition: Low Attendance
-    if attendance < 75:
+    if attendance < 80:
         suggestions.append("Improve attendance above 75%.")
 
     # 3. Condition: Low Study Hours
@@ -18,7 +18,7 @@ def ai_feedback(risk_level, attendance, study_hours, internal_marks):
         suggestions.append("Increase study time to at least 2-3 hours daily.")
 
     # 4. Condition: Low Internal Marks
-    if internal_marks < 50:
+    if internal_marks < 60:
         suggestions.append("Retake practice tests and review internal exam mistakes.")
 
     return " | ".join(suggestions)
