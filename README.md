@@ -236,3 +236,15 @@ Output = Performance Score (0-100)
 + Feature selection
 + Try different algorithms
 + Tune parameters
+
+#### 18. Current Status
++ UI Ready
++ ML Model Ready
+
+#### 19. Next Step
++ Integrate ML Moddel with Tkinter UI
++ Add Ai-based recommendation
++ Platform Testing \
+**Tkinter UI + ML Model + AI Recommendation Logic = Complete Intelligent Application**
+
+<p align="center"><br> Tkinter UI <br> &darr; <br> Load Saved Model <br> &darr; <br> Send input to model <br> &darr; <br> Get Prediction <br> &darr; <br> Display in UI <br></p>
