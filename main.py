@@ -4,13 +4,14 @@ import joblib
 import numpy as np
 import pandas as pd
 import os
+from ai import ai_feedback
 
 # Global Settings
 MODEL_PATH = "student_regression_model.pkl" 
 MASTER_CSV_FILE = "student_prediction.csv"
 FEATURE_COLS = ["Attendance", "StudyHours", "InternalMarks", "Assignment", "PreviousPerformance"]
 ALL_COLUMNS = ["StudentID", "Name", "Attendance", "StudyHours", "InternalMarks", "Assignment", "PreviousPerformance"]
-RECORD_COLUMNS = ALL_COLUMNS + ["Predicted_Result"]
+RECORD_COLUMNS = ALL_COLUMNS + ["Predicted_Result", "Risk_Level"]
 
 try:
     model = joblib.load(MODEL_PATH)
@@ -23,7 +24,22 @@ root.geometry("1200x850")
 root.title("Smart Student Performance Prediction System")
 root.resizable(True, True)
 
-# --- Helper Functions ---
+# ---  Functions ---
+
+def calculate_risk(prediction_score):
+    """Determine risk category based on the predicted score or grade."""
+    if isinstance(prediction_score, (int, float, np.floating, np.integer)):
+        if prediction_score < 50:
+            return "High Risk"
+        elif prediction_score < 65:
+            return "Moderate Risk"
+        else:
+            return "Low Risk"
+    else:
+        if str(prediction_score).lower() in ["fail", "low", "poor", "at risk"]:
+            return "High Risk"
+        return "Low Risk"
+
 
 def append_to_master_csv(df_to_add):
     """Safely append any DataFrame row-by-row to the unified master CSV file."""
@@ -34,7 +50,7 @@ def append_to_master_csv(df_to_add):
 
 
 def validate_inputs():
-    """Validate entry fields and return a clean dictionary of values, or None if invalid."""
+    """Validate entry fields and return a clean dictionary of values."""
     student_id = StuId.get().strip()
     student_name = StuName.get().strip()
     attendance = Atten.get().strip()
@@ -107,7 +123,7 @@ def validate_inputs():
 # --- Button Actions ---
 
 def load_data_to_csv():
-    """Manually load/append input records to the master CSV file without predicting."""
+    """Manually append records to the master CSV file without running prediction."""
     has_single_input = any([
         StuId.get().strip(),
         StuName.get().strip(),
@@ -155,7 +171,7 @@ def load_data_to_csv():
 
 
 def predict_performance():
-    """Predict performance for single entry and automatically append the result to the master CSV."""
+    """Predict performance, calculate risk level, and append to the master CSV."""
     if model is None:
         messagebox.showerror("Model Error", "ML Model (.pkl) is not loaded.")
         return
@@ -182,21 +198,30 @@ def predict_performance():
             pred_score = prediction
             pred_text = f"{pred_score}"
 
+        # Calculate Risk Level
+        risk_level = calculate_risk(pred_score)
+        advice = ai_feedback(risk_level=risk_level, attendance=data["Attendance"], study_hours=data["StudyHours"],internal_marks=data["InternalMarks"])
+
         prediction_value.config(text=f"Prediction ({data['Name']}): {pred_text}")
+        risk_value.config(text=f"Risk Level: {risk_level}")
+        recommendation_value.config(text=f"Recommendation: {advice}")
+       
 
         record = dict(data)
         record["Predicted_Result"] = pred_score
+        record["Risk_Level"] = risk_level
+        
         df_single = pd.DataFrame([record])
         append_to_master_csv(df_single)
 
-        messagebox.showinfo("Saved", f"Prediction generated and appended to '{MASTER_CSV_FILE}'.")
+        messagebox.showinfo("Saved", f"Prediction and Risk Level saved to '{MASTER_CSV_FILE}'.")
 
     except Exception as err:
         messagebox.showerror("Prediction Error", f"Inference failed:\n{err}")
 
 
 def predict_csv_file():
-    """Predict performance for a batch CSV file and append all predicted rows to the master CSV."""
+    """Predict performance & risk for an entire batch CSV and append to master CSV."""
     if model is None:
         messagebox.showerror("Model Error", "ML Model (.pkl) is not loaded.")
         return
@@ -217,22 +242,27 @@ def predict_csv_file():
         if missing_features:
             messagebox.showerror(
                 "Missing Columns",
-                f"Selected CSV file is missing required feature columns:\n{', '.join(missing_features)}"
+                f"Selected CSV is missing required feature columns:\n{', '.join(missing_features)}"
             )
             return
 
-        # Perform predictions
+        # Perform predictions and calculate risk
         features = df[FEATURE_COLS].values
         preds = model.predict(features)
-        df["Predicted_Result"] = [round(float(p), 2) if isinstance(p, (int, float, np.floating, np.integer)) else p for p in preds]
+        
+        df["Predicted_Result"] = [
+            round(float(p), 2) if isinstance(p, (int, float, np.floating, np.integer)) else p 
+            for p in preds
+        ]
+        df["Risk_Level"] = [calculate_risk(p) for p in df["Predicted_Result"]]
 
-        # Select matching columns to append
-        cols_to_save = [col for col in ALL_COLUMNS if col in df.columns] + ["Predicted_Result"]
+        # Select columns to append to master CSV
+        cols_to_save = [col for col in ALL_COLUMNS if col in df.columns] + ["Predicted_Result", "Risk_Level"]
         append_to_master_csv(df[cols_to_save])
 
         messagebox.showinfo(
             "Success",
-            f"{len(df)} predictions generated and appended row-by-row into '{MASTER_CSV_FILE}'."
+            f"{len(df)} predictions with risk levels appended row-by-row into '{MASTER_CSV_FILE}'."
         )
 
     except Exception as err:
