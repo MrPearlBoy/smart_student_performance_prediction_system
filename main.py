@@ -1,16 +1,22 @@
+import os
 import tkinter as tk
 from tkinter import filedialog, messagebox
+import threading
 import joblib
 import numpy as np
 import pandas as pd
-import os
+import requests
 from ai import ai_feedback
 
-# Global Settings
+# --- Global Settings ---
 MODEL_PATH = "student_regression_model.pkl" 
 MASTER_CSV_FILE = "student_prediction.csv"
+
+# REPLACE THIS WITH YOUR ACTUAL N8N WEBHOOK URL
+N8N_WEBHOOK_URL = "https://selvaa.app.n8n.cloud/webhook/student-risk-alert"
+
 FEATURE_COLS = ["Attendance", "StudyHours", "InternalMarks", "Assignment", "PreviousPerformance"]
-ALL_COLUMNS = ["StudentID", "Name", "Attendance", "StudyHours", "InternalMarks", "Assignment", "PreviousPerformance"]
+ALL_COLUMNS = ["StudentID", "Name", "Email", "Attendance", "StudyHours", "InternalMarks", "Assignment", "PreviousPerformance"]
 RECORD_COLUMNS = ALL_COLUMNS + ["Predicted_Result", "Risk_Level", "Recommendation"]
 
 try:
@@ -20,11 +26,28 @@ except Exception as e:
     print(f"Warning: Could not load model: {e}")
 
 root = tk.Tk()
-root.geometry("1200x850")
+root.geometry("1200x870")
 root.title("Smart Student Performance Prediction System")
 root.resizable(True, True)
 
-# ---  Functions ---
+# --- Automation Helper ---
+
+def send_n8n_webhook(payload):
+    """Send JSON payload to n8n webhook in background."""
+    try:
+        response = requests.post(N8N_WEBHOOK_URL, json=payload, timeout=8)
+        if response.status_code == 200:
+            print(f"[n8n] Email alert sent successfully for: {payload.get('Name')}")
+        else:
+            print(f"[n8n] Webhook responded with status: {response.status_code}")
+    except Exception as e:
+        print(f"[n8n] Error triggering webhook: {e}")
+
+def trigger_n8n_alert(data_dict):
+    """Run webhook trigger in a separate thread to keep UI responsive."""
+    threading.Thread(target=send_n8n_webhook, args=(data_dict,), daemon=True).start()
+
+# --- Helper Functions ---
 
 def calculate_risk(prediction_score):
     """Determine risk category based on the predicted score or grade."""
@@ -53,6 +76,7 @@ def validate_inputs():
     """Validate entry fields and return a clean dictionary of values."""
     student_id = StuId.get().strip()
     student_name = StuName.get().strip()
+    student_email = StuEmail.get().strip()
     attendance = Atten.get().strip()
     study_hours = StdyHrs.get().strip()
     internal_marks = IAMarks.get().strip()
@@ -60,8 +84,8 @@ def validate_inputs():
     previous_performance = PrePerf.get().strip()
 
     # Check empty fields
-    if not all([student_id, student_name, attendance, study_hours, internal_marks, assignment, previous_performance]):
-        messagebox.showwarning("Missing Information", "Please fill in all the fields.")
+    if not all([student_id, student_name, student_email, attendance, study_hours, internal_marks, assignment, previous_performance]):
+        messagebox.showwarning("Missing Information", "Please fill in all the fields including Email.")
         return None
 
     # Check ID is numeric
@@ -72,6 +96,11 @@ def validate_inputs():
     # Check Name is alphabetic
     if not all(char.isalpha() or char.isspace() for char in student_name):
         messagebox.showerror("Invalid Student Name", "Student Name must contain alphabets only.")
+        return None
+
+    # Basic Email check
+    if "@" not in student_email or "." not in student_email:
+        messagebox.showerror("Invalid Email", "Please enter a valid email address.")
         return None
 
     # Validate numeric ranges
@@ -112,6 +141,7 @@ def validate_inputs():
     return {
         "StudentID": student_id,
         "Name": student_name,
+        "Email": student_email,
         "Attendance": attendance,
         "StudyHours": study_hours,
         "InternalMarks": internal_marks,
@@ -127,6 +157,7 @@ def load_data_to_csv():
     has_single_input = any([
         StuId.get().strip(),
         StuName.get().strip(),
+        StuEmail.get().strip(),
         Atten.get().strip(),
         StdyHrs.get().strip(),
         IAMarks.get().strip(),
@@ -171,7 +202,7 @@ def load_data_to_csv():
 
 
 def predict_performance():
-    """Predict performance, calculate risk level, and append to the master CSV."""
+    """Predict performance, calculate risk level, save result, and trigger n8n if high risk."""
     if model is None:
         messagebox.showerror("Model Error", "ML Model (.pkl) is not loaded.")
         return
@@ -198,15 +229,21 @@ def predict_performance():
             pred_score = prediction
             pred_text = f"{pred_score}"
 
-        # Calculate Risk Level
+        # 1. Calculate Risk Level & Recommendation
         risk_level = calculate_risk(pred_score)
+        advice = ai_feedback(
+            risk_level=risk_level,
+            attendance=data["Attendance"],
+            study_hours=data["StudyHours"],
+            internal_marks=data["InternalMarks"]
+        )
 
+        # 2. Update UI
         prediction_value.config(text=f"Prediction ({data['Name']}): {pred_text}")
         risk_value.config(text=f"Risk Level: {risk_level}")
-        advice = ai_feedback(risk_level=risk_level, attendance=data["Attendance"], study_hours=data["StudyHours"],internal_marks=data["InternalMarks"])
         recommendation_value.config(text=f"Recommendation: {advice}")
-       
 
+        # 3. Append to master CSV
         record = dict(data)
         record["Predicted_Result"] = pred_score
         record["Risk_Level"] = risk_level
@@ -215,14 +252,22 @@ def predict_performance():
         df_single = pd.DataFrame([record])
         append_to_master_csv(df_single)
 
-        messagebox.showinfo("Saved", f"Prediction and Risk Level saved to '{MASTER_CSV_FILE}'.")
+        # 4. Trigger n8n webhook email alert if student is High Risk
+        if risk_level == "High Risk":
+            trigger_n8n_alert(record)
+            messagebox.showinfo(
+                "Alert Sent",
+                f"Saved to '{MASTER_CSV_FILE}'.\n\n⚠️ Student identified as High Risk — Automated email alert triggered via n8n!"
+            )
+        else:
+            messagebox.showinfo("Saved", f"Prediction and details saved to '{MASTER_CSV_FILE}'.")
 
     except Exception as err:
         messagebox.showerror("Prediction Error", f"Inference failed:\n{err}")
 
 
 def predict_csv_file():
-    """Predict performance & risk for an entire batch CSV and append to master CSV."""
+    """Predict batch CSV, append results to master CSV, and trigger n8n for high-risk students."""
     if model is None:
         messagebox.showerror("Model Error", "ML Model (.pkl) is not loaded.")
         return
@@ -238,7 +283,6 @@ def predict_csv_file():
     try:
         df = pd.read_csv(file_path)
 
-        # Verify required feature columns
         missing_features = [col for col in FEATURE_COLS if col not in df.columns]
         if missing_features:
             messagebox.showerror(
@@ -247,7 +291,7 @@ def predict_csv_file():
             )
             return
 
-        # Perform predictions and calculate risk
+        # Perform predictions
         features = df[FEATURE_COLS].values
         preds = model.predict(features)
         
@@ -256,15 +300,30 @@ def predict_csv_file():
             for p in preds
         ]
         df["Risk_Level"] = [calculate_risk(p) for p in df["Predicted_Result"]]
+        df["Recommendation"] = [
+            ai_feedback(
+                risk_level=row["Risk_Level"],
+                attendance=row["Attendance"],
+                study_hours=row["StudyHours"],
+                internal_marks=row["InternalMarks"]
+            )
+            for _, row in df.iterrows()
+        ]
 
-        # Select columns to append to master CSV
-        cols_to_save = [col for col in ALL_COLUMNS if col in df.columns] + ["Predicted_Result", "Risk_Level"]
+        # Save to master CSV
+        cols_to_save = [col for col in ALL_COLUMNS if col in df.columns] + ["Predicted_Result", "Risk_Level", "Recommendation"]
         append_to_master_csv(df[cols_to_save])
 
-        messagebox.showinfo(
-            "Success",
-            f"{len(df)} predictions with risk levels appended row-by-row into '{MASTER_CSV_FILE}'."
-        )
+        # Send n8n alert for every high-risk student found in batch
+        high_risk_count = 0
+        for _, row in df[df["Risk_Level"] == "High Risk"].iterrows():
+            trigger_n8n_alert(row.to_dict())
+            high_risk_count += 1
+
+        msg = f"{len(df)} predictions appended into '{MASTER_CSV_FILE}'."
+        if high_risk_count > 0:
+            msg += f"\n\n⚠️ Automated email alerts triggered for {high_risk_count} high-risk student(s)."
+        messagebox.showinfo("Success", msg)
 
     except Exception as err:
         messagebox.showerror("CSV Processing Error", f"Failed to process and append records:\n{err}")
@@ -274,6 +333,7 @@ def clear_fields():
     """Clear all input and output fields."""
     StuId.delete(0, tk.END)
     StuName.delete(0, tk.END)
+    StuEmail.delete(0, tk.END)
     Atten.delete(0, tk.END)
     StdyHrs.delete(0, tk.END)
     IAMarks.delete(0, tk.END)
@@ -295,10 +355,10 @@ def exit_application():
 # --- UI Layout ---
 
 main_frame = tk.Frame(root)
-main_frame.pack(fill="both", expand=True, padx=40, pady=25)
+main_frame.pack(fill="both", expand=True, padx=40, pady=20)
 
 heading1 = tk.Label(main_frame, text="Smart Student Performance Prediction System", font=("Times New Roman", 20, "bold"))
-heading1.pack(pady=(10, 20))
+heading1.pack(pady=(10, 15))
 
 input_frame = tk.Frame(main_frame)
 input_frame.pack(fill="x", pady=10)
@@ -308,47 +368,53 @@ student_frame = tk.LabelFrame(input_frame, text="Student Information", font=("Ti
 student_frame.pack(side="left", fill="both", expand=True, padx=(0, 15))
 
 student_id_frame = tk.Frame(student_frame)
-student_id_frame.pack(fill="x", pady=8)
+student_id_frame.pack(fill="x", pady=5)
 tk.Label(student_id_frame, text="Student ID", font=("Times New Roman", 11, "bold"), width=15, anchor="w").pack(side="left")
 StuId = tk.Entry(student_id_frame, font=("Times New Roman", 11))
 StuId.pack(side="left", fill="x", expand=True)
 
 student_name_frame = tk.Frame(student_frame)
-student_name_frame.pack(fill="x", pady=8)
+student_name_frame.pack(fill="x", pady=5)
 tk.Label(student_name_frame, text="Name", font=("Times New Roman", 11, "bold"), width=15, anchor="w").pack(side="left")
 StuName = tk.Entry(student_name_frame, font=("Times New Roman", 11))
 StuName.pack(side="left", fill="x", expand=True)
+
+student_email_frame = tk.Frame(student_frame)
+student_email_frame.pack(fill="x", pady=5)
+tk.Label(student_email_frame, text="Email", font=("Times New Roman", 11, "bold"), width=15, anchor="w").pack(side="left")
+StuEmail = tk.Entry(student_email_frame, font=("Times New Roman", 11))
+StuEmail.pack(side="left", fill="x", expand=True)
 
 # Academic Information Frame
 academic_frame = tk.LabelFrame(input_frame, text="Academic Information", font=("Times New Roman", 14, "bold"), padx=20, pady=15)
 academic_frame.pack(side="left", fill="both", expand=True, padx=(15, 0))
 
 attendance_frame = tk.Frame(academic_frame)
-attendance_frame.pack(fill="x", pady=5)
+attendance_frame.pack(fill="x", pady=4)
 tk.Label(attendance_frame, text="Attendance (%)", font=("Times New Roman", 11, "bold"), width=25, anchor="w").pack(side="left")
 Atten = tk.Entry(attendance_frame, font=("Times New Roman", 11))
 Atten.pack(side="left", fill="x", expand=True)
 
 study_frame = tk.Frame(academic_frame)
-study_frame.pack(fill="x", pady=5)
+study_frame.pack(fill="x", pady=4)
 tk.Label(study_frame, text="Study Hours (per Day)", font=("Times New Roman", 11, "bold"), width=25, anchor="w").pack(side="left")
 StdyHrs = tk.Entry(study_frame, font=("Times New Roman", 11))
 StdyHrs.pack(side="left", fill="x", expand=True)
 
 internal_frame = tk.Frame(academic_frame)
-internal_frame.pack(fill="x", pady=5)
+internal_frame.pack(fill="x", pady=4)
 tk.Label(internal_frame, text="Internal Marks (%)", font=("Times New Roman", 11, "bold"), width=25, anchor="w").pack(side="left")
 IAMarks = tk.Entry(internal_frame, font=("Times New Roman", 11))
 IAMarks.pack(side="left", fill="x", expand=True)
 
 assignment_frame = tk.Frame(academic_frame)
-assignment_frame.pack(fill="x", pady=5)
+assignment_frame.pack(fill="x", pady=4)
 tk.Label(assignment_frame, text="Assignment Completion (%)", font=("Times New Roman", 11, "bold"), width=25, anchor="w").pack(side="left")
 Assg = tk.Entry(assignment_frame, font=("Times New Roman", 11))
 Assg.pack(side="left", fill="x", expand=True)
 
 previous_frame = tk.Frame(academic_frame)
-previous_frame.pack(fill="x", pady=5)
+previous_frame.pack(fill="x", pady=4)
 tk.Label(previous_frame, text="Previous Performance (%)", font=("Times New Roman", 11, "bold"), width=25, anchor="w").pack(side="left")
 PrePerf = tk.Entry(previous_frame, font=("Times New Roman", 11))
 PrePerf.pack(side="left", fill="x", expand=True)
